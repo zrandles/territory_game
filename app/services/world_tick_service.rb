@@ -6,19 +6,64 @@ class WorldTickService
   def tick!
     puts "[World Tick] Starting tick at #{Time.current}"
 
-    # Step 1: Update territory control based on player positions
+    # Step 1: Resolve combat (push off outnumbered players)
+    resolve_combat
+
+    # Step 2: Update territory control based on remaining players
     update_territory_control
 
-    # Step 2: Move bots
+    # Step 3: Move bots
     move_bots
 
-    # Step 3: Update faction totals
+    # Step 4: Update faction totals
     update_faction_power
 
     puts "[World Tick] Tick complete"
   end
 
   private
+
+  def resolve_combat
+    respawned_count = 0
+    Territory.joins(:player_positions).distinct.find_each do |territory|
+      faction_counts = territory.players_by_faction.transform_values(&:count)
+      next if faction_counts.size <= 1 # No combat if only one faction present
+
+      # Find dominant faction (most players)
+      dominant_faction, dominant_count = faction_counts.max_by { |_, count| count }
+
+      # Push off players from other factions if outnumbered 2:1 or more
+      territory.players.each do |player|
+        next if player.faction == dominant_faction
+
+        outnumbered_count = faction_counts[player.faction] || 0
+        if dominant_count >= outnumbered_count * 2
+          respawn_player(player)
+          respawned_count += 1
+        end
+      end
+    end
+    puts "[World Tick] Respawned #{respawned_count} outnumbered players"
+  end
+
+  def respawn_player(player)
+    # Find respawn territory: controlled rally point or faction corner
+    respawn_territory = find_respawn_territory(player.faction)
+    player.move_to!(respawn_territory) if respawn_territory
+  end
+
+  def find_respawn_territory(faction)
+    # First: Try to find a controlled rally point
+    rally_spawn = Territory.where(is_rally_point: true, faction: faction).first
+    return rally_spawn if rally_spawn
+
+    # Fallback: Faction's corner (Red: top-left, Blue: bottom-right)
+    if faction.name == "Red"
+      Territory.find_by(x: 0, y: 0)
+    else # Blue
+      Territory.find_by(x: 9, y: 19)
+    end
+  end
 
   def update_territory_control
     Territory.find_each do |territory|

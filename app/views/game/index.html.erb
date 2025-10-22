@@ -3,10 +3,14 @@
 
   <div class="grid grid-cols-2 gap-4 mb-6">
     <% @factions.each do |faction| %>
-      <div class="p-4 border-2 rounded" style="border-color: <%= faction.color %>">
-        <h2 class="text-xl font-bold" style="color: <%= faction.color %>"><%= faction.name %> Faction</h2>
-        <p class="text-2xl font-bold"><%= faction.territories.count %></p>
-        <p class="text-sm text-gray-600">territories</p>
+      <div class="p-4 border-2 rounded <%= 'ring-4 ring-green-500' if faction.winning? %>" style="border-color: <%= faction.color %>">
+        <h2 class="text-xl font-bold" style="color: <%= faction.color %>">
+          <%= faction.name %> Faction
+          <%= "🏆" if faction.winning? %>
+        </h2>
+        <p class="text-3xl font-bold"><%= faction.control_percentage %>%</p>
+        <p class="text-sm text-gray-600">control (<%= faction.territories.count %> territories)</p>
+        <p class="text-xs text-gray-500 mt-1">Rally Points: <%= faction.territories.where(is_rally_point: true).count %>/3</p>
       </div>
     <% end %>
   </div>
@@ -51,7 +55,10 @@
 
             player_count = territory.players.count
           %>
-          <div class="w-12 h-12 m-0.5 border border-gray-400 <%= bg_color %> flex items-center justify-center text-xs font-bold">
+          <div class="w-12 h-12 m-0.5 border border-gray-400 <%= bg_color %> flex items-center justify-center text-xs font-bold relative">
+            <% if territory.is_rally_point %>
+              <span class="absolute top-0 left-0 text-yellow-500">★</span>
+            <% end %>
             <%= player_count if player_count > 0 %>
           </div>
         <% end %>
@@ -60,13 +67,23 @@
   </div>
 
   <div class="mt-6">
-    <h2 class="text-xl font-bold mb-2">Legend</h2>
-    <ul class="list-disc list-inside">
-      <li><span class="inline-block w-4 h-4 bg-red-200 border border-gray-400"></span> Red Faction Territory</li>
-      <li><span class="inline-block w-4 h-4 bg-blue-200 border border-gray-400"></span> Blue Faction Territory</li>
-      <li><span class="inline-block w-4 h-4 bg-gray-50 border border-gray-400"></span> Neutral Territory</li>
-      <li><span class="inline-block w-4 h-4 bg-yellow-300 ring-4 ring-yellow-500"></span> Your Current Position</li>
-      <li>Number in tile = players on that territory</li>
+    <h2 class="text-xl font-bold mb-2">How to Win</h2>
+    <p class="mb-4 font-bold text-green-600">Reach 60% control by capturing rally points (★) and territories!</p>
+
+    <h3 class="font-bold mb-2">Combat Rules:</h3>
+    <ul class="list-disc list-inside mb-4 text-sm">
+      <li>If outnumbered 2:1 on a tile → respawn at your rally point</li>
+      <li>Rally points (★) are worth 3x in control calculations</li>
+      <li>Control a rally point → respawn there when defeated</li>
+    </ul>
+
+    <h3 class="font-bold mb-2">Legend:</h3>
+    <ul class="list-disc list-inside text-sm">
+      <li><span class="text-yellow-500">★</span> Rally Point (worth 3x)</li>
+      <li><span class="inline-block w-4 h-4 bg-yellow-300 ring-2 ring-yellow-500"></span> Your Position</li>
+      <li><span class="inline-block w-4 h-4 bg-red-200 border border-gray-400"></span> Red Territory</li>
+      <li><span class="inline-block w-4 h-4 bg-blue-200 border border-gray-400"></span> Blue Territory</li>
+      <li>Number = players on tile</li>
     </ul>
   </div>
 </div>

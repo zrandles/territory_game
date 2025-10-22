@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_22_233617) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_22_235544) do
   create_table "actions", force: :cascade do |t|
     t.integer "player_id", null: false
     t.string "action_type"
@@ -59,6 +59,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_22_233617) do
     t.integer "player_count"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_rally_point", default: false, null: false
     t.index ["faction_id"], name: "index_territories_on_faction_id"
   end
 

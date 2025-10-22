@@ -15,18 +15,43 @@ class BotAiService
     adjacent = find_adjacent_territories(current_pos)
     return if adjacent.empty?
 
-    # Simple strategy: Move to adjacent territory with fewest enemy players
+    # Strategy: Prioritize rally points, avoid overwhelming enemy forces
     target = adjacent.min_by do |territory|
-      enemy_count = territory.players.count { |p| p.faction_id != @bot.faction_id }
-      # Prefer neutral or same-faction territories
-      if territory.faction_id.nil? || territory.faction_id == @bot.faction_id
-        enemy_count - 100  # Heavy preference
-      else
-        enemy_count
-      end
+      score = evaluate_territory(territory)
+      score
     end
 
     @bot.move_to!(target) if target
+  end
+
+  def evaluate_territory(territory)
+    enemy_count = territory.players.count { |p| p.faction_id != @bot.faction_id }
+    friendly_count = territory.players.count { |p| p.faction_id == @bot.faction_id }
+
+    # Start with enemy count as base score (lower is better)
+    score = enemy_count
+
+    # HUGE bonus for uncaptured rally points
+    if territory.is_rally_point && territory.faction_id != @bot.faction_id
+      score -= 200
+    end
+
+    # Bonus for defending our rally points
+    if territory.is_rally_point && territory.faction_id == @bot.faction_id
+      score -= 50
+    end
+
+    # Prefer neutral or friendly territories
+    if territory.faction_id.nil? || territory.faction_id == @bot.faction_id
+      score -= 30
+    end
+
+    # Avoid tiles where we're heavily outnumbered (2:1 push-off threshold)
+    if enemy_count >= 2 * (friendly_count + 1) # +1 for this bot
+      score += 100 # Heavy penalty for walking into push-off
+    end
+
+    score
   end
 
   private

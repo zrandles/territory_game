@@ -3,6 +3,8 @@ class Territory < ApplicationRecord
   has_many :player_positions
   has_many :players, through: :player_positions
 
+  scope :rally_points, -> { where(is_rally_point: true) }
+
   def adjacent_to?(other_territory)
     return false unless other_territory
     (x - other_territory.x).abs + (y - other_territory.y).abs == 1
@@ -18,5 +20,10 @@ class Territory < ApplicationRecord
 
     winning_faction, count = faction_counts.max_by { |_, count| count }
     update!(faction: winning_faction, player_count: count)
+  end
+
+  # Rally points are worth 3x in territory control calculations
+  def territory_value
+    is_rally_point? ? 3 : 1
   end
 end

@@ -10,9 +10,22 @@ red_faction = Faction.create!(name: "Red", color: "#ef4444", total_power: 0)
 blue_faction = Faction.create!(name: "Blue", color: "#3b82f6", total_power: 0)
 
 puts "Creating 10x20 grid of territories..."
+rally_points = [
+  {x: 5, y: 5},   # Top center rally point
+  {x: 5, y: 10},  # Middle center rally point (most contested)
+  {x: 5, y: 15}   # Bottom center rally point
+]
+
 (0..9).each do |x|
   (0..19).each do |y|
-    Territory.create!(x: x, y: y, faction: nil, player_count: 0)
+    is_rally = rally_points.any? { |rp| rp[:x] == x && rp[:y] == y }
+    Territory.create!(
+      x: x,
+      y: y,
+      faction: nil,
+      player_count: 0,
+      is_rally_point: is_rally
+    )
   end
 end
 
@@ -62,4 +75,5 @@ puts "✅ Seed complete!"
 puts "  - 2 Factions (Red, Blue)"
 puts "  - 20 Players (1 human, 19 bots)"
 puts "  - 200 Territories (10x20 grid)"
+puts "  - 3 Rally Points (vertical center line: y=5, y=10, y=15)"
 puts "  - All players placed randomly"

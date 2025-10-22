@@ -1,9 +1,9 @@
-# World tick - runs every 2 minutes
+# World tick - runs every minute in dev for faster testing
 development:
   world_tick:
     class: WorldTickJob
     queue: default
-    schedule: every 2 minutes
+    schedule: every minute
 
 production:
   world_tick:

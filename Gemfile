@@ -67,3 +67,5 @@ group :development do
   gem 'capistrano-rails', '~> 1.6'
   gem 'capistrano-rbenv', '~> 2.2'
 end
+
+gem "tailwindcss-rails", "~> 4.3"

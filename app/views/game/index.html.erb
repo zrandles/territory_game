@@ -1,14 +1,12 @@
-<meta http-equiv="refresh" content="3">
-
 <div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-4">Territory Game <span class="text-sm text-gray-500">(auto-refreshes every 3s)</span></h1>
+  <h1 class="text-3xl font-bold mb-4">Territory Game <span class="text-sm text-gray-500">(press arrow keys to move)</span></h1>
 
   <div class="grid grid-cols-2 gap-4 mb-6">
     <% @factions.each do |faction| %>
       <div class="p-4 border-2 rounded" style="border-color: <%= faction.color %>">
         <h2 class="text-xl font-bold" style="color: <%= faction.color %>"><%= faction.name %> Faction</h2>
-        <p>Territories: <%= faction.territories.count %></p>
-        <p>Players: <%= faction.players.count %></p>
+        <p class="text-2xl font-bold"><%= faction.territories.count %></p>
+        <p class="text-sm text-gray-600">territories</p>
       </div>
     <% end %>
   </div>
@@ -16,7 +14,7 @@
   <% if @human_player.current_position %>
     <div class="mb-4 p-4 bg-blue-100 rounded">
       <p class="font-bold">Your Position: (<%= @human_player.current_position.x %>, <%= @human_player.current_position.y %>)</p>
-      <p>Click an adjacent territory to move there.</p>
+      <p>Use arrow keys to move</p>
     </div>
   <% end %>
 
@@ -53,12 +51,9 @@
 
             player_count = territory.players.count
           %>
-          <%= form_with url: move_game_index_path, method: :post, local: true do |f| %>
-            <%= f.hidden_field :x, value: x %>
-            <%= f.hidden_field :y, value: y %>
-            <%= f.submit "#{x},#{y}\n#{player_count > 0 ? player_count : ''}",
-                class: "w-16 h-16 m-0.5 text-xs border border-gray-400 cursor-pointer hover:ring-2 hover:ring-blue-400 #{bg_color}" %>
-          <% end %>
+          <div class="w-12 h-12 m-0.5 border border-gray-400 <%= bg_color %> flex items-center justify-center text-xs font-bold">
+            <%= player_count if player_count > 0 %>
+          </div>
         <% end %>
       </div>
     <% end %>
@@ -75,3 +70,68 @@
     </ul>
   </div>
 </div>
+
+<script>
+  // Auto-refresh every 3 seconds
+  setTimeout(() => location.reload(), 3000);
+
+  // Keyboard controls
+  document.addEventListener('keydown', (e) => {
+    <% if @human_player.current_position %>
+      const currentX = <%= @human_player.current_position.x %>;
+      const currentY = <%= @human_player.current_position.y %>;
+      let newX = currentX;
+      let newY = currentY;
+
+      switch(e.key) {
+        case 'ArrowUp':
+          newY = currentY - 1;
+          e.preventDefault();
+          break;
+        case 'ArrowDown':
+          newY = currentY + 1;
+          e.preventDefault();
+          break;
+        case 'ArrowLeft':
+          newX = currentX - 1;
+          e.preventDefault();
+          break;
+        case 'ArrowRight':
+          newX = currentX + 1;
+          e.preventDefault();
+          break;
+        default:
+          return;
+      }
+
+      // Only move if within bounds
+      if (newX >= 0 && newX <= 9 && newY >= 0 && newY <= 19) {
+        // Create and submit form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '<%= move_game_index_path %>';
+
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'authenticity_token';
+        csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+        form.appendChild(csrf);
+
+        const xInput = document.createElement('input');
+        xInput.type = 'hidden';
+        xInput.name = 'x';
+        xInput.value = newX;
+        form.appendChild(xInput);
+
+        const yInput = document.createElement('input');
+        yInput.type = 'hidden';
+        yInput.name = 'y';
+        yInput.value = newY;
+        form.appendChild(yInput);
+
+        document.body.appendChild(form);
+        form.submit();
+      }
+    <% end %>
+  });
+</script>

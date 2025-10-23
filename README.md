@@ -1,24 +1,46 @@
-# README
+# Territory Game
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A massive-scale persistent territory control game with strategic rally points, 2:1 combat mechanics, and smart bot AI.
 
-Things you may want to cover:
+**Repository**: https://github.com/zrandles/territory_game  
+**Status**: Playable prototype (v0.1.0)
 
-* Ruby version
+---
 
-* System dependencies
+## Quick Start
 
-* Configuration
+```bash
+git clone git@github.com:zrandles/territory_game.git
+cd territory_game
+bundle install
+bin/rails db:setup
+bin/dev           # Start Rails + Tailwind
+bin/tick_loop     # Start game loop (separate terminal)
+```
 
-* Database creation
+Visit **http://localhost:3000/territory_game**
 
-* Database initialization
+---
 
-* How to run the test suite
+## Gameplay
 
-* Services (job queues, cache servers, search engines, etc.)
+- **2 Factions** (Red vs Blue), 10 players each
+- **Arrow keys** to move on 10×20 grid
+- **Capture rally points** (★) worth 3x
+- **First to 60% control wins**
+- **2:1 combat**: Outnumbered? Respawn at rally point
+- **Smart bots**: Prioritize rally points automatically
 
-* Deployment instructions
+See [docs/SESSION_2025_10_22.md](docs/SESSION_2025_10_22.md) for full details and roadmap.
 
-* ...
+---
+
+## Tech Stack
+
+Rails 8 • Ruby 3.3.4 • Tailwind CSS • Solid Queue • SQLite
+
+---
+
+## License
+
+MIT

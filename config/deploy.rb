@@ -85,6 +85,17 @@ namespace :deploy do
       # Do nothing
     end
 
+    desc 'Build Tailwind CSS'
+    task :build_tailwind do
+      on roles(:web) do
+        within release_path do
+          with rails_env: fetch(:rails_env) do
+            execute :bundle, 'exec', 'rails', 'tailwindcss:build'
+          end
+        end
+      end
+    end
+
     desc 'Precompile assets using Propshaft'
     task :precompile do
       on roles(:web) do
@@ -137,6 +148,7 @@ end
 # The custom asset tasks defined above in namespace :deploy will run correctly.
 
 after 'bundler:install', 'deploy:generate_binstubs'
+before 'deploy:assets:precompile', 'deploy:assets:build_tailwind'
 before 'deploy:publishing', 'deploy:assets:precompile'
 after 'deploy:publishing', 'deploy:restart'
 after 'deploy:publishing', 'deploy:restart_puma_sudo'

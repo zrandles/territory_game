@@ -31,4 +31,15 @@ class GameController < ApplicationController
 
     redirect_to root_path
   end
+
+  def restart
+    # Reset game state
+    GameState.reset!
+
+    # Re-seed the database
+    require_relative "../../db/seeds"
+
+    flash[:notice] = "Game restarted! Good luck!"
+    redirect_to root_path
+  end
 end

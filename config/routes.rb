@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     resources :game, only: [:index] do
       collection do
         post :move
+        post :restart
       end
     end
 

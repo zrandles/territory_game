@@ -4,6 +4,7 @@ Action.destroy_all
 Player.destroy_all
 Territory.destroy_all
 Faction.destroy_all
+GameState.destroy_all
 
 puts "Creating factions..."
 red_faction = Faction.create!(name: "Red", color: "#ef4444", total_power: 0)
@@ -71,9 +72,13 @@ Player.all.each do |player|
   player.move_to!(territory)
 end
 
+puts "Initializing game state..."
+GameState.create!(running: true, winner_faction: nil)
+
 puts "✅ Seed complete!"
 puts "  - 2 Factions (Red, Blue)"
 puts "  - 20 Players (1 human, 19 bots)"
 puts "  - 200 Territories (10x20 grid)"
 puts "  - 3 Rally Points (vertical center line: y=5, y=10, y=15)"
 puts "  - All players placed randomly"
+puts "  - Game running!"

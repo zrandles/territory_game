@@ -15,39 +15,10 @@ class BotAiService
     adjacent = find_adjacent_territories(current_pos)
     return if adjacent.empty?
 
-    # Build weighted list based on:
-    # - Rally points get weight 2
-    # - Regular tiles get weight 1
-    # - Tiles we just came from get weight 0 (never go back)
-    # - Tiles with 3+ friendly bots get weight 0 (spread out!)
-    weighted_choices = []
+    # Pick a random adjacent tile
+    target = adjacent.sample
 
-    adjacent.each do |territory|
-      # Never return to the tile we just came from
-      next if @bot.last_territory_id && territory.id == @bot.last_territory_id
-
-      # Count friendly bots already on this tile
-      friendly_count = territory.players.count { |p| p.faction_id == @bot.faction_id }
-
-      # Don't move to tiles with 3+ friendly bots already (spread out!)
-      next if friendly_count >= 3
-
-      # Rally points get 2x weight
-      weight = territory.is_rally_point? ? 2 : 1
-
-      # Add territory to choices based on weight
-      weight.times { weighted_choices << territory }
-    end
-
-    # If all adjacent tiles are blocked, pick any adjacent tile at random
-    if weighted_choices.empty?
-      target = adjacent.sample
-    else
-      target = weighted_choices.sample
-    end
-
-    # Update last territory before moving
-    @bot.update_column(:last_territory_id, current_pos.id)
+    # Move to it
     @bot.move_to!(target) if target
   end
 

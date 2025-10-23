@@ -1,5 +1,8 @@
 <div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-4">Territory Game <span class="text-sm text-gray-500">(press arrow keys to move)</span></h1>
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-3xl font-bold">Territory Game <span class="text-sm text-gray-500">(press arrow keys to move)</span></h1>
+    <%= button_to "Restart Game", restart_game_index_path, method: :post, class: "px-4 py-2 bg-green-600 text-white font-bold rounded hover:bg-green-700", data: { confirm: "Are you sure? This will start a new game." } %>
+  </div>
 
   <% winner = @factions.find(&:winning?) %>
   <% if winner %>

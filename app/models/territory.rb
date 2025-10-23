@@ -19,12 +19,15 @@ class Territory < ApplicationRecord
 
     if faction_counts.empty?
       # No players on this territory - keep the color, just update count to 0
+      Rails.logger.info "[Territory #{x},#{y}] No players, keeping faction_id=#{faction_id}"
       update!(player_count: 0) if player_count > 0
       return
     end
 
     winning_faction, count = faction_counts.max_by { |_, count| count }
+    old_faction_id = faction_id
     update!(faction: winning_faction, player_count: count)
+    Rails.logger.info "[Territory #{x},#{y}] Updated from faction_id=#{old_faction_id} to faction_id=#{faction_id}, count=#{count}"
   end
 
   # Rally points are worth 3x in territory control calculations

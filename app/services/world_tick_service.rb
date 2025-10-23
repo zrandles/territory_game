@@ -4,6 +4,12 @@ class WorldTickService
   end
 
   def tick!
+    # Don't tick if game is not running
+    unless GameState.running?
+      puts "[World Tick] Game not running, skipping tick"
+      return
+    end
+
     puts "[World Tick] Starting tick at #{Time.current}"
 
     # Step 1: Resolve combat (push off outnumbered players)
@@ -17,6 +23,9 @@ class WorldTickService
 
     # Step 4: Update faction totals
     update_faction_power
+
+    # Step 5: Check for winner
+    check_for_winner
 
     puts "[World Tick] Tick complete"
   end
@@ -86,5 +95,13 @@ class WorldTickService
       faction.update_total_power!
     end
     puts "[World Tick] Updated faction power totals"
+  end
+
+  def check_for_winner
+    winner = Faction.all.find(&:winning?)
+    if winner
+      GameState.stop!(winner)
+      puts "[World Tick] 🏆 #{winner.name} wins! Game stopped."
+    end
   end
 end

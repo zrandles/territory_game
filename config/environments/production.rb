@@ -3,6 +3,12 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  # CRITICAL: Set asset host for path-based routing (scoped under /territory_game)
+  # Propshaft doesn't use relative_url_root, use asset_host with path prefix
+  config.asset_host = lambda do |source|
+    "/territory_game"
+  end
+
   # Code is not reloaded between requests.
   config.enable_reloading = false
 

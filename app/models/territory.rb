@@ -18,8 +18,8 @@ class Territory < ApplicationRecord
     faction_counts = players_by_faction.transform_values(&:count)
 
     if faction_counts.empty?
-      # No players on this territory - make it neutral
-      update!(faction: nil, player_count: 0) if faction_id.present? || player_count > 0
+      # No players on this territory - keep the color, just update count to 0
+      update!(player_count: 0) if player_count > 0
       return
     end
 

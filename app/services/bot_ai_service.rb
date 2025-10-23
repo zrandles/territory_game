@@ -16,10 +16,15 @@ class BotAiService
     return if adjacent.empty?
 
     # Strategy: Prioritize rally points, avoid overwhelming enemy forces
-    target = adjacent.min_by do |territory|
-      score = evaluate_territory(territory)
-      score
+    # Add some randomness to avoid oscillating behavior
+    scored_territories = adjacent.map do |territory|
+      base_score = evaluate_territory(territory)
+      # Add small random factor to break ties and add variety
+      random_factor = rand(-5..5)
+      [territory, base_score + random_factor]
     end
+
+    target = scored_territories.min_by { |_, score| score }.first
 
     @bot.move_to!(target) if target
   end
@@ -66,6 +71,7 @@ class BotAiService
       [x, y + 1]
     ].select { |ax, ay| ax.between?(0, 9) && ay.between?(0, 19) }
 
-    Territory.where(x: adjacent_coords.map(&:first), y: adjacent_coords.map(&:last))
+    # Find territories that match the (x,y) coordinate pairs
+    adjacent_coords.map { |ax, ay| Territory.find_by(x: ax, y: ay) }.compact
   end
 end

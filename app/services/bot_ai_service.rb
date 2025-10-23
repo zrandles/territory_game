@@ -33,28 +33,51 @@ class BotAiService
     enemy_count = territory.players.count { |p| p.faction_id != @bot.faction_id }
     friendly_count = territory.players.count { |p| p.faction_id == @bot.faction_id }
 
-    # Start with enemy count as base score (lower is better)
-    score = enemy_count
+    # Start with base score of 0
+    score = 0
 
     # HUGE bonus for uncaptured rally points
     if territory.is_rally_point && territory.faction_id != @bot.faction_id
-      score -= 200
+      score -= 300  # Increased from 200
     end
 
-    # Bonus for defending our rally points
+    # MASSIVE bonus for enemy rally points (attack them!)
+    if territory.is_rally_point && territory.faction_id && territory.faction_id != @bot.faction_id
+      score -= 250  # New: prioritize attacking enemy rally points
+    end
+
+    # Medium bonus for defending our rally points (but not camping)
     if territory.is_rally_point && territory.faction_id == @bot.faction_id
-      score -= 50
+      score -= 30  # Reduced from 50 - don't camp as much
     end
 
-    # Prefer neutral or friendly territories
-    if territory.faction_id.nil? || territory.faction_id == @bot.faction_id
-      score -= 30
+    # Strong preference for neutral territories (expand!)
+    if territory.faction_id.nil?
+      score -= 40  # New: capture neutral ground
+    end
+
+    # Slight preference for enemy territories (be aggressive!)
+    if territory.faction_id && territory.faction_id != @bot.faction_id && !territory.is_rally_point
+      score -= 20  # New: attack enemy territories
+    end
+
+    # Penalize staying on already-friendly territories (spread out!)
+    if territory.faction_id == @bot.faction_id && !territory.is_rally_point
+      score += 15  # New: discourage clustering
+    end
+
+    # Penalize tiles with too many friendlies already (spread out!)
+    if friendly_count >= 2
+      score += 25 * friendly_count  # Stack penalty - encourage spreading
     end
 
     # Avoid tiles where we're heavily outnumbered (2:1 push-off threshold)
     if enemy_count >= 2 * (friendly_count + 1) # +1 for this bot
-      score += 100 # Heavy penalty for walking into push-off
+      score += 150  # Increased penalty
     end
+
+    # Small penalty for enemy presence to create caution
+    score += enemy_count * 5
 
     score
   end

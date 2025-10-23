@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_22_235544) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_23_003838) do
   create_table "actions", force: :cascade do |t|
     t.integer "player_id", null: false
     t.string "action_type"
@@ -49,6 +49,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_22_235544) do
     t.datetime "last_active_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "last_territory_id"
     t.index ["faction_id"], name: "index_players_on_faction_id"
   end
 

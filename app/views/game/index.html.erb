@@ -53,13 +53,21 @@
               "bg-gray-50"
             end
 
-            player_count = territory.players.count
+            # Count players by faction on this tile
+            players_on_tile = territory.players
+            red_count = players_on_tile.count { |p| p.faction.name == "Red" }
+            blue_count = players_on_tile.count { |p| p.faction.name == "Blue" }
           %>
-          <div class="w-12 h-12 m-0.5 border border-gray-400 <%= bg_color %> flex items-center justify-center text-xs font-bold relative">
+          <div class="w-12 h-12 m-0.5 border border-gray-400 <%= bg_color %> flex flex-col items-center justify-center text-xs font-bold relative">
             <% if territory.is_rally_point %>
               <span class="absolute top-0 left-0 text-yellow-500">★</span>
             <% end %>
-            <%= player_count if player_count > 0 %>
+            <% if red_count > 0 %>
+              <span class="text-red-600"><%= red_count %>R</span>
+            <% end %>
+            <% if blue_count > 0 %>
+              <span class="text-blue-600"><%= blue_count %>B</span>
+            <% end %>
           </div>
         <% end %>
       </div>
@@ -80,10 +88,11 @@
     <h3 class="font-bold mb-2">Legend:</h3>
     <ul class="list-disc list-inside text-sm">
       <li><span class="text-yellow-500">★</span> Rally Point (worth 3x)</li>
-      <li><span class="inline-block w-4 h-4 bg-yellow-300 ring-2 ring-yellow-500"></span> Your Position</li>
+      <li><span class="inline-block w-4 h-4 bg-yellow-300 ring-2 ring-yellow-500"></span> Your Position (highlighted yellow)</li>
       <li><span class="inline-block w-4 h-4 bg-red-200 border border-gray-400"></span> Red Territory</li>
       <li><span class="inline-block w-4 h-4 bg-blue-200 border border-gray-400"></span> Blue Territory</li>
-      <li>Number = players on tile</li>
+      <li><span class="text-red-600 font-bold">2R</span> = 2 Red players on tile</li>
+      <li><span class="text-blue-600 font-bold">2B</span> = 2 Blue players on tile</li>
     </ul>
   </div>
 </div>

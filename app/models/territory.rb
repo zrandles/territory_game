@@ -16,7 +16,12 @@ class Territory < ApplicationRecord
 
   def update_control!
     faction_counts = players_by_faction.transform_values(&:count)
-    return if faction_counts.empty?
+
+    if faction_counts.empty?
+      # No players on this territory - make it neutral
+      update!(faction: nil, player_count: 0) if faction_id.present? || player_count > 0
+      return
+    end
 
     winning_faction, count = faction_counts.max_by { |_, count| count }
     update!(faction: winning_faction, player_count: count)

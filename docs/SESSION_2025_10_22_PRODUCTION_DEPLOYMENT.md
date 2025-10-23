@@ -73,6 +73,17 @@ before 'deploy:assets:precompile', 'deploy:assets:build_tailwind'
 **CRITICAL FOR FUTURE DEPLOYMENTS**:
 This pattern is **required for ANY Rails app using Tailwind CSS**. Add the `build_tailwind` task and hook to `config/deploy.rb` before first deployment.
 
+**ALSO REQUIRED - Relative URL Root for Path-Based Routing**:
+Apps deployed under a path (e.g., `/territory_game`) must set `relative_url_root` in `config/environments/production.rb`:
+
+```ruby
+# CRITICAL: Set relative URL root for path-based routing
+config.relative_url_root = "/territory_game"
+config.action_controller.relative_url_root = "/territory_game"
+```
+
+Without this, asset paths will be `/assets/...` instead of `/territory_game/assets/...` causing 404s.
+
 ---
 
 ### 2. Nginx Not Configured (FIXED)

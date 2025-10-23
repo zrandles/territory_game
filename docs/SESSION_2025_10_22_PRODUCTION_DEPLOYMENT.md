@@ -17,7 +17,65 @@ All systems operational:
 
 ## Issues Found & Fixed
 
-### 1. Nginx Not Configured (FIXED)
+### 1. Tailwind CSS Not Loading (FIXED - Critical for All Future Deployments)
+
+**Problem**: Page rendered as plaintext with no styling - Tailwind CSS classes present in HTML but styles not applied
+
+**Root Cause**:
+- `app/assets/builds/` directory is in `.gitignore` (by design - build artifacts shouldn't be committed)
+- During deployment, Capistrano runs `rails assets:precompile` which uses Propshaft
+- **BUT Tailwind CSS must be built BEFORE Propshaft runs** - otherwise Propshaft packages an empty manifest file
+- The Tailwind gem builds CSS into `app/assets/builds/tailwind.css` at build time, not deploy time
+
+**Symptoms**:
+- Deployed `application-*.css` was only 491 bytes (just comments, no Tailwind classes)
+- Local `app/assets/builds/tailwind.css` was 13KB+ with all classes
+- Page had Tailwind classes in HTML but no visual styling
+
+**Fix Applied** (config/deploy.rb):
+```ruby
+namespace :assets do
+  desc 'Build Tailwind CSS'
+  task :build_tailwind do
+    on roles(:web) do
+      within release_path do
+        with rails_env: fetch(:rails_env) do
+          execute :bundle, 'exec', 'rails', 'tailwindcss:build'
+        end
+      end
+    end
+  end
+
+  # ... existing precompile task ...
+end
+
+# Critical hook order:
+before 'deploy:assets:precompile', 'deploy:assets:build_tailwind'
+```
+
+**Deployment Log Output** (now shows Tailwind building):
+```
+00:15 deploy:assets:build_tailwind
+      01 bundle exec rails tailwindcss:build
+      01 ≈ tailwindcss v4.1.13
+      01 Done in 114ms
+    ✔ 01 zac@24.199.71.69 2.299s
+00:18 deploy:assets:precompile
+      01 bundle exec rake assets:precompile
+      01 Writing tailwind-b9cba2a2.css  ← 14KB, success!
+```
+
+**Result**:
+- `tailwind-b9cba2a2.css` now 14KB (vs 491 bytes before)
+- All Tailwind classes rendering correctly
+- Grid layouts, colors, spacing, borders all working
+
+**CRITICAL FOR FUTURE DEPLOYMENTS**:
+This pattern is **required for ANY Rails app using Tailwind CSS**. Add the `build_tailwind` task and hook to `config/deploy.rb` before first deployment.
+
+---
+
+### 2. Nginx Not Configured (FIXED)
 
 **Problem**: App deployed and service running, but nginx returned 404
 
@@ -31,7 +89,7 @@ All systems operational:
 **Files Modified**:
 - `/etc/nginx/sites-available/test_sites` (on production server)
 
-### 2. Database Not Migrated/Seeded (FIXED)
+### 3. Database Not Migrated/Seeded (FIXED)
 
 **Problem**: Production database existed but was empty (no tables/data)
 
@@ -141,16 +199,18 @@ Rails 8 automatically starts Solid Queue workers when the server boots in produc
 
 When deploying Rails apps with Solid Queue:
 
-1. **Deploy code**: `cap production deploy`
-2. **Configure nginx**: Add upstream + location blocks manually
-3. **Verify migrations ran**: Check `db/migrate/` files applied
-4. **Seed database**: Run `RAILS_ENV=production bundle exec rails db:seed`
-5. **Verify Solid Queue processes**:
+1. **CRITICAL: Add Tailwind build task** to `config/deploy.rb` (see fix #1 above)
+2. **Deploy code**: `cap production deploy`
+3. **Configure nginx**: Add upstream + location blocks manually
+4. **Verify migrations ran**: Check `db/migrate/` files applied
+5. **Seed database**: Run `RAILS_ENV=production bundle exec rails db:seed`
+6. **Verify Solid Queue processes**:
    - Check systemd service status
    - Look for supervisor/dispatcher/scheduler/worker in `ps aux | grep solid-queue`
    - Check logs for job execution: `tail -f ~/app_name/shared/log/puma.stdout.log`
-6. **Test recurring jobs**: Verify jobs appear in logs at expected intervals
-7. **Test web app**: Visit production URL, verify UI loads
+7. **Test recurring jobs**: Verify jobs appear in logs at expected intervals
+8. **Verify Tailwind CSS**: Check that `public/assets/tailwind-*.css` is 14KB+, not 491 bytes
+9. **Test web app**: Visit production URL, verify UI loads with proper styling
 
 ## Key Learning: Solid Queue "Just Works"
 
